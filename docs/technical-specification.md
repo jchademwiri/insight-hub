@@ -1,139 +1,198 @@
-# MVP Analytics Platform - Technical Specification Document
-## ✅ 1. **Technical Specification Document**
+# MVP Analytics Platform - Technical Specification
 
-**Purpose:** Translate the PRD into detailed development requirements.
-**Includes:**
+## 1. Overview
 
-* Component structure (pages, layouts, components)
-* Routes (`/dashboard`, `/login`, `/projects/:id`, etc.)
-* API endpoints or Server Actions
-* Database schema (Drizzle ORM table definitions)
-* Folder structure (Next.js App Router conventions)
-* State management decisions (e.g. local state, context, or form libraries)
-
-✅ *Deliverable format:* Markdown, Notion, or a shared doc.
+This document outlines the technical implementation plan for the MVP version of the Analytics Platform using Next.js 15, Supabase (PostgreSQL + Auth), Drizzle ORM, Tailwind CSS v4, ShadCN UI, and Recharts.
 
 ---
 
-## ✅ 2. **UI/UX Wireframes or Mockups**
+## 2. Tech Stack Summary
 
-**Purpose:** Visual blueprint for layouts and components.
-**Includes:**
-
-* Role-based dashboards
-* Forms (create/edit views)
-* Navigation, modals, and mobile layout
-* Error/empty states
-* Example visualizations (charts, KPIs)
-
-✅ *Tool examples:* Figma, Penpot, Whimsical
-If you’re not hiring a designer, quick grayscale wireframes are better than none.
-
----
-
-## ✅ 3. **Entity Relationship Diagram (ERD)**
-
-**Purpose:** Visual representation of the database tables and their relationships.
-**Includes:**
-
-* All tables: users, projects, financials, milestones, etc.
-* Foreign key relationships
-* Cardinality (1-to-many, many-to-many)
-
-✅ *Tool examples:* dbdiagram.io, Lucidchart, Supabase Studio
+| Layer         | Technology                            |
+| ------------- | ------------------------------------- |
+| Frontend      | Next.js 15 (App Router), TypeScript   |
+| Styling       | Tailwind CSS v4, ShadCN UI            |
+| Charts        | Recharts                              |
+| Backend Logic | Next.js Server Actions                |
+| Auth          | Supabase Auth                         |
+| Database      | PostgreSQL (via Supabase)             |
+| ORM           | Drizzle ORM                           |
+| Hosting       | Vercel (frontend), Supabase (backend) |
 
 ---
 
-## ✅ 4. **Task Breakdown / Feature Backlog**
+## 3. Folder Structure (Next.js App Router)
 
-**Purpose:** Organize the build into sprints or milestones.
-**Includes:**
-
-* Tasks grouped by phase: Auth, Projects, Dashboards, etc.
-* Status (To Do / In Progress / Done)
-* Time estimates
-* Assignments (if you're working with a team)
-
-✅ *Tool examples:* Trello, Linear, Notion, GitHub Projects
-
----
-
-## ✅ 5. **Testing Plan**
-
-**Purpose:** Ensure you're building what works and is testable manually.
-**Includes:**
-
-* Manual test cases for each feature (e.g. “Submit Project Form → should redirect & show new project”)
-* Acceptance criteria per feature
-* Device/browser checklist (especially tablet support)
-* Edge cases (missing data, invalid inputs, etc.)
-
-✅ *Format:* Checklist in Notion or a Markdown doc
+```
+/app
+  /dashboard (protected, role-based layout)
+  /login
+  /projects
+  /invoices
+  /expenses
+  /admin (optional future extension)
+/lib
+  /db (Drizzle schema and queries)
+  /auth (Supabase client helpers)
+  /utils
+/components
+  /forms
+  /ui (shared ShadCN components)
+  /charts
+```
 
 ---
 
-## ✅ 6. **Security & Auth Plan**
+## 4. Database Schema (Drizzle ORM)
 
-**Purpose:** Define how Supabase Auth will be implemented.
-**Includes:**
+### Tables:
 
-* Roles and permissions (executive, PM, ops, finance)
-* Protected routes (`/dashboard`, `/admin`)
-* Session handling (via cookies or Supabase client)
-* Optional: password recovery, multi-factor auth
+* `users`
+* `projects`
+* `equipment_types`
+* `invoices`
+* `expenses`
 
-✅ *Format:* Simple outline with role access mapping
+### Schema Summary
 
----
+```ts
+// users.ts
+id, email, password_hash, role, created_at
 
-## ✅ 7. **Deployment & Environment Plan**
+// projects.ts
+id, project_number, description, client, status,
+duration, start_date, end_date
 
-**Purpose:** Set up production-ready workflows from day one.
-**Includes:**
+// equipment_types.ts
+id, name, category, description
 
-* Hosting setup (Vercel project link, env variables)
-* Supabase project setup & secrets
-* Branching strategy (main/dev)
-* CI/CD steps (Vercel deploy previews, linting, type checking)
+// invoices.ts
+id, project_id, equipment_type_id, invoice_number,
+date, amount, status, notes
 
-✅ *Tip:* Document `.env` variable names & values clearly
-
----
-
-## ✅ 8. **Content/Data Strategy (Manual Entry Plan)**
-
-**Purpose:** Plan how you’ll populate the system for demo/testing.
-**Includes:**
-
-* Dummy data for projects, financials, etc.
-* Schedule for weekly updates during testing
-* Who enters what (you, testers, etc.)
-
-✅ *Format:* Spreadsheet + entry protocol doc
+// expenses.ts
+id, invoice_id, category, amount, description, date
+```
 
 ---
 
-## ✅ 9. **Presentation Deck (for Director/Stakeholders)**
+## 5. Pages & Routes
 
-**Purpose:** When the MVP is ready, you'll need a clean presentation.
-**Includes:**
+### Public Routes:
 
-* MVP goals recap
-* Screenshots or live demo
-* Key insights from dashboards
-* Technical foundation (tech stack used)
-* Call to action: approval for full build
+* `/login` – Supabase Auth form with role redirect
 
-✅ *Tool:* Google Slides or PowerPoint
+### Protected Routes (via middleware):
 
----
-
-## Optional (but helpful):
-
-* ✅ **Glossary** (define domain terms)
-* ✅ **Risk Register** (anticipated blockers)
-* ✅ **Versioning Plan** (if updating MVP post-launch)
+* `/dashboard` – Landing page based on role
+* `/projects` – Project list + creation/edit form
+* `/invoices` – List and entry form for equipment usage
+* `/expenses` – List and entry form by invoice
 
 ---
 
-Would you like a folder structure or starter template (Notion or Markdown) for any of these documents? I can generate and organize them for you.
+## 6. Forms and Components
+
+### Project Form
+
+* Project number, client, description, duration
+* Start date (auto-calculate end date)
+
+### Equipment Type Form
+
+* Name, category, description
+
+### Invoice Form
+
+* Project, equipment type, date, amount, status, notes
+
+### Expense Form
+
+* Linked invoice, category, amount, date, description
+
+---
+
+## 7. Server Actions
+
+All logic will be implemented as **Server Actions** inside Next.js App Router (no custom API routes).
+
+Examples:
+
+* `createProjectAction()`
+* `submitInvoiceAction()`
+* `addExpenseAction()`
+* `getDashboardData()`
+
+---
+
+## 8. Role-Based Access Control
+
+Roles: `admin`, `project_manager`, `finance`, `executive`
+
+* Middleware protects all `/dashboard` routes
+* Supabase role field determines access level
+* Optional: hide menu links per role in UI
+
+---
+
+## 9. Data Entry Flow
+
+1. **Create Equipment Types** (one-time setup)
+2. **Create Projects** (with start/duration)
+3. **Submit Invoices** (project + equipment type)
+4. **Add Expenses** (linked to invoice)
+
+---
+
+## 10. Calculated Metrics
+
+To be handled in frontend or SQL views (optional):
+
+* Total revenue per equipment type
+* Total expenses per invoice
+* Net profit = invoice.amount - SUM(expenses.amount)
+
+---
+
+## 11. Environment Variables
+
+```
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+---
+
+## 12. Dev Setup Checklist
+
+* Clone repo & install dependencies
+* Setup Supabase project with tables
+* Connect Drizzle to Supabase via `drizzle.config.ts`
+* Add environment variables
+* Run `drizzle-kit push` to sync schema
+* Deploy frontend via Vercel (GitHub connect)
+
+---
+
+## 13. Future Considerations
+
+* Add individual equipment logs (if needed)
+* Add project timelines/milestones
+* Add client and feedback tables
+* Add report exports (CSV/PDF)
+* Add dashboards for mobile view
+
+---
+
+## 14. Glossary (Optional)
+
+* **Equipment Type** – A category of asset used across projects
+* **Invoice** – A record of revenue for equipment usage on a project
+* **Expense** – A cost incurred to fulfill an invoice (fuel, salaries, etc.)
+
+---
+
+End of Technical Specification

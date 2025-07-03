@@ -1,0 +1,54 @@
+// title
+title Project Management and Billing Data Model
+
+// define tables
+users [icon: user, color: yellow]{
+  id int pk
+  email text
+  password_hash text
+  role text
+  created_at timestamp
+}
+
+projects [icon: briefcase, color: blue]{
+  id int pk
+  project_number text
+  description text
+  client text
+  status text
+  duration int
+  start_date date
+  end_date date
+}
+
+equipment_types [icon: cpu, color: orange]{
+  id int pk
+  name text
+  category text
+  description text
+}
+
+invoices [icon: file-text, color: green]{
+  id int pk
+  project_id int
+  equipment_type_id int
+  invoice_number text
+  date date
+  amount int
+  status text
+  notes text
+}
+
+expenses [icon: dollar-sign, color: red]{
+  id int pk
+  invoice_id int
+  category text
+  amount int
+  description text
+  date date
+}
+
+// define relationships
+invoices.project_id > projects.id
+invoices.equipment_type_id > equipment_types.id
+expenses.invoice_id > invoices.id

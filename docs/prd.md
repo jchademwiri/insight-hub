@@ -66,33 +66,25 @@ Demonstrate how consolidated project data in role-specific dashboards can elimin
 * Supports:
 
   * Project info
-  * Financials
-  * Resources
-  * Timelines
-  * Client feedback
+  * Equipment usage via invoice
+  * Expenses linked to invoices
 
 #### 2.2 Data Categories
 
 ```
 Projects:
-- Project Name, Client, Start Date, End Date, Status
-- Budget, Actual Spend, Remaining Budget
-- Team Members, Roles, Allocation %
+- Project Number, Client, Start Date, End Date, Status
+- Duration, Description
 
-Financials:
-- Invoice Amount, Status, Due Date, Paid Date
-- Expense Categories, Amounts, Approval Status
-- Monthly Revenue, Costs, Profit Margins
+Equipment Types:
+- Name, Category, Description
 
-Operations:
-- Equipment Usage, Maintenance Schedules
-- Service Delivery Metrics, Quality Scores
-- Timeline Adherence, Milestone Completion
+Invoices:
+- Project, Equipment Type, Invoice Number, Date
+- Revenue Amount, Status, Notes
 
-Resources:
-- Team Member Utilization, Availability
-- Skill Sets, Capacity Planning
-- Overtime Hours, Efficiency Metrics
+Expenses:
+- Invoice, Category, Amount, Description, Date
 ```
 
 #### 2.3 Data Validation
@@ -110,32 +102,27 @@ Resources:
 * KPIs: Total revenue, profit margins, project count
 * Portfolio Status: Active, completed, at-risk
 * Financial Summary: Monthly trends, cost analysis
-* Resource Utilization: Team capacity, equipment
+* Equipment Profitability: Revenue and expenses per equipment type
 * Client Health: Satisfaction, retention
 
 #### 3.2 Project Manager Dashboard
 
 * Project Status: Timeline, budget, % complete
-* Resource Allocation: Assignments, availability
+* Equipment Use: Invoices by project
 * Budget Tracking: Spent vs. allocated
-* Timeline Management: Milestones, deadlines
 * Risk Indicators: At-risk projects, alerts
 
 #### 3.3 Operations Dashboard
 
-* Delivery: Quality metrics, completion rates
-* Equipment: Utilization, maintenance
-* Team Performance: Productivity, efficiency
-* Client Satisfaction: Feedback, resolution
-* Capacity Planning: Forecast vs. actual
+* Equipment Use by Project
+* Cost Trends: Fuel, salaries, maintenance per invoice
+* Capacity Planning: Upcoming vs. used equipment
 
 #### 3.4 Finance Dashboard
 
 * Cash Flow: Invoice status, payments
-* Profitability: Project margins
-* Budget Management: Variance, forecast
-* Cost Centers: Department spend
-* Financial Health: Ratios, trends
+* Profitability: Per invoice and per equipment type
+* Cost Analysis: Breakdown by category
 
 ### 4. Basic Interactive Features
 
@@ -166,7 +153,7 @@ Resources:
 * **ShadCN UI**
 * **Recharts** for charts
 
-#### 1.2 Backend (Integrated via Supabase)
+#### 1.2 Backend (Supabase)
 
 * **PostgreSQL** hosted on Supabase
 * **Drizzle ORM** for schema and queries
@@ -181,45 +168,44 @@ Resources:
 * **SSL** via Vercel
 * **Environment configs** for dev/staging/prod
 
-### 2. Database Schema (via Drizzle ORM)
+### 2. Database Schema
 
-```ts
-import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+```
+Users (id, email, password_hash, role, created_at)
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull(),
-  passwordHash: text("password_hash").notNull(),
-  role: text("role").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+Projects (
+  id, project_number, description, client, status,
+  duration, start_date, end_date
+)
 
-export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  client: text("client").notNull(),
-  startDate: timestamp("start_date"),
-  endDate: timestamp("end_date"),
-  status: text("status"),
-  budget: integer("budget"),
-  actualSpend: integer("actual_spend"),
-});
+EquipmentTypes (
+  id, name, category, description
+)
 
-// Clients, Financials, Resources, Milestones tables to be added similarly
+Invoices (
+  id, project_id, equipment_type_id, invoice_number,
+  date, amount, status, notes
+)
+
+Expenses (
+  id, invoice_id, category, amount, description, date
+)
 ```
 
 ### 3. Data Entry Workflows
 
 #### 3.1 Initial Setup
 
-* Create Projects, Clients, Team Members
-* Set budgets, milestones, assignments
+* Create Projects
+* Define Equipment Types
+* Log Invoices (linking project + equipment type)
+* Enter Expenses per invoice
 
 #### 3.2 Weekly Updates
 
-* Update statuses and financials
-* Track resources and client feedback
-* Mark milestone progress
+* Update project statuses
+* Log new invoices for active projects
+* Record new expenses linked to each invoice
 
 ---
 
@@ -234,13 +220,13 @@ export const projects = pgTable("projects", {
 
 ### Phase 2: Forms & Layouts (Weeks 3–4)
 
-* Data entry forms for all categories
+* Data entry forms for projects, invoices, expenses
 * Basic dashboard layouts
 * Visualizations with Recharts
 
 ### Phase 3: Dashboards (Weeks 5–6)
 
-* Finalize executive, PM, ops, finance views
+* Finalize executive, PM, operations, finance views
 * Implement print/export features
 
 ### Phase 4: Testing & Refinement (Weeks 7–8)
@@ -294,30 +280,32 @@ export const projects = pgTable("projects", {
 
 * Historical projects
 * Financials
-* Resources
-* Client feedback
-* Milestones
+* Equipment usage
+* Expenses per project
 
 ---
 
 ## Risk Mitigation
 
-### Technical
+### 1. Technical
 
-* Simple Next.js + Supabase stack
-* Server Actions avoid backend API boilerplate
+* Supabase handles most infra complexity
+* Next.js Server Actions reduce backend overhead
+* Drizzle ORM ensures schema safety
 
-### Business
+### 2. Business
 
 * Low budget, fast timeline
 * Use real-world data
 * Visible value for stakeholders
 
-### Scope
+### 3. Scope Management
 
 * Feature freeze for MVP
 * Manual-only data input
 * Defined metrics for success
+* Regular check-ins
+* **Equipment management is scoped to reusable equipment types, avoiding the complexity of assigning individual assets to projects.**
 
 ---
 
@@ -342,5 +330,3 @@ export const projects = pgTable("projects", {
 * Drizzle schema migration
 * Supabase to enterprise cloud
 * Rollout by department
-
----
