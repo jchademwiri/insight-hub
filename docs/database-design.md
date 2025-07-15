@@ -50,7 +50,6 @@
 | ------------- | -------- | ---------------------------- |
 | `id`          | `serial` | Primary key                  |
 | `name`        | `text`   | e.g. "Tipper", "Grader"      |
-| `category`    | `text`   | Optional (e.g. Heavy, Light) |
 | `description` | `text`   | Optional                     |
 
 ---
