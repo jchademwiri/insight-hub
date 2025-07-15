@@ -4,6 +4,8 @@
 
 The MVP Analytics Platform is a streamlined, role-based analytics platform that demonstrates the value of centralized data insights through manual data entry. This serves as a proof-of-concept for director approval and full development authorization. The platform consolidates project data in role-specific dashboards to eliminate manual reporting, speed up decision-making, and provide previously unavailable insights.
 
+**Current Implementation Status**: Basic Supabase authentication is implemented with login/signup flows. The application needs to be extended with multi-tenant organization structure, database schema, and role-based dashboards.
+
 ## Requirements
 
 ### Requirement 1

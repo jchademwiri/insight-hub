@@ -1,18 +1,19 @@
-# MVP Analytics Platform
+# Insight Hub - MVP Analytics Platform
 
 A streamlined, role-based analytics platform MVP for construction equipment management and project profitability analysis.
 
 ## 🎯 Overview
 
-This MVP demonstrates the value of centralized project data through role-specific dashboards, designed to eliminate manual reporting and speed up decision-making for construction equipment companies.
+Insight Hub demonstrates the value of centralized project data through role-specific dashboards, designed to eliminate manual reporting and speed up decision-making for construction equipment companies. This MVP serves as a proof-of-concept to validate core analytics concepts and secure approval for full development.
 
 ### Key Features
 
-- **Role-based dashboards** for Executive, Project Manager, Operations, and Finance teams
+- **Role-based dashboards** tailored for Executive, Project Manager, Operations, and Finance teams
 - **Manual data entry system** for projects, equipment usage, and expenses
 - **Real-time analytics** with interactive charts and KPIs
 - **Equipment profitability tracking** across projects
 - **Secure authentication** with role-based access control
+- **Business intelligence** with automated profit margin calculations
 
 ## 🛠️ Tech Stack
 
@@ -29,24 +30,30 @@ This MVP demonstrates the value of centralized project data through role-specifi
 
 ## 📊 Database Schema
 
-The platform uses a normalized database design with 5 core tables:
+The platform uses a normalized database design with 5 core tables optimized for construction equipment analytics:
 
 ```
-users → Authentication & roles
-projects → Construction project metadata  
-equipment_types → Master list of reusable equipment
-invoices → Equipment usage per project (revenue)
-expenses → Costs linked to invoices
+users           → Authentication & role management
+projects        → Construction project metadata & tracking
+equipment_types → Master catalog of reusable equipment
+invoices        → Equipment usage per project (revenue tracking)
+expenses        → Cost management linked to invoices
 ```
+
+**Key Design Principles:**
+- Equipment managed as reusable types (not individual assets)
+- Revenue tied to equipment usage per project
+- Expenses categorized and linked to specific invoices
+- Role-based data access and filtering
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- Vercel account (for deployment)
+- Node.js 18+ and npm/pnpm
+- Supabase account (database & auth)
+- Vercel account (deployment)
+- Git for version control
 
 ### Installation
 
@@ -58,7 +65,8 @@ expenses → Costs linked to invoices
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
+   # or npm install
    ```
 
 3. **Set up environment variables**
@@ -78,15 +86,15 @@ expenses → Costs linked to invoices
 4. **Set up the database**
    ```bash
    # Push schema to Supabase
-   npm run db:push
+   pnpm db:push
    
    # Optional: Seed with sample data
-   npm run db:seed
+   pnpm db:seed
    ```
 
 5. **Start the development server**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
    Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -94,20 +102,39 @@ expenses → Costs linked to invoices
 ## 📁 Project Structure
 
 ```
-/app
-  /dashboard          # Protected role-based dashboards
-  /login              # Authentication
-  /projects           # Project management
-  /invoices           # Equipment usage tracking
-  /expenses           # Cost management
-/lib
-  /db                 # Drizzle schema and queries
-  /auth               # Supabase client helpers
-  /utils              # Shared utilities
-/components
-  /forms              # Data entry forms
-  /ui                 # ShadCN UI components
-  /charts             # Recharts visualizations
+src/
+├── app/                    # Next.js App Router
+│   ├── (auth)/             # Authentication routes
+│   │   └── login/          # Login page
+│   ├── (dashboard)/        # Protected dashboard routes
+│   │   ├── dashboard/      # Main dashboard views
+│   │   ├── projects/       # Project management
+│   │   ├── equipment/      # Equipment management
+│   │   ├── invoices/       # Revenue tracking
+│   │   └── expenses/       # Cost management
+│   ├── api/                # API routes
+│   └── layout.tsx          # Root layout
+├── components/             # React components
+│   ├── dashboard/          # Dashboard-specific components
+│   ├── forms/              # Data entry forms
+│   ├── charts/             # Recharts visualizations
+│   ├── tables/             # Data tables and lists
+│   └── ui/                 # ShadCN UI components
+├── lib/                    # Shared utilities
+│   ├── db/                 # Database schema and queries
+│   │   ├── schema.ts       # Drizzle schema definition
+│   │   └── queries/        # Organized query functions
+│   ├── auth/               # Authentication utilities
+│   ├── hooks/              # Custom React hooks
+│   └── utils/              # Helper functions
+├── types/                  # TypeScript type definitions
+├── styles/                 # Global styles
+└── middleware.ts           # Auth middleware
+
+docs/                       # Documentation
+├── database-design.md      # Database schema details
+├── technical-specification.md
+└── prd.md                  # Product requirements
 ```
 
 ## 🔐 User Roles & Access
@@ -151,12 +178,14 @@ expenses → Costs linked to invoices
 
 1. **Connect to Vercel**
    ```bash
-   npm i -g vercel
+   pnpm i -g vercel
    vercel login
    vercel
    ```
 
 2. **Configure environment variables in Vercel dashboard**
+   - Add all variables from `.env.local`
+   - Ensure Supabase URLs and keys are correct
 
 3. **Deploy**
    ```bash
@@ -174,27 +203,31 @@ expenses → Costs linked to invoices
 
 ### Sample Data Requirements
 
+For effective MVP testing, ensure:
 - **2-3 active projects** per company
 - **3-6 months** of historical data
 - **Weekly updates** during testing period
+- **Multiple equipment types** (Tipper, Grader, Excavator, etc.)
+- **Varied expense categories** (fuel, salary, maintenance, parts)
 
 ### Success Metrics
 
-- **Time to Insight**: < 30 seconds
-- **Decision Speed**: +50% improvement
-- **Page Load**: < 2 seconds
-- **User Satisfaction**: Positive stakeholder feedback
+- **Time to Insight**: < 30 seconds from login to key metrics
+- **Decision Speed**: +50% improvement in project decisions
+- **Page Load**: < 2 seconds for dashboard rendering
+- **User Satisfaction**: Positive stakeholder feedback and director approval
 
 ## 📋 Available Scripts
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript checks
-npm run db:push      # Push schema to database
-npm run db:studio    # Open Drizzle Studio
+pnpm dev             # Start development server
+pnpm build           # Build for production  
+pnpm start           # Start production server
+pnpm lint            # Run ESLint
+pnpm type-check      # Run TypeScript checks
+pnpm db:push         # Push schema to database
+pnpm db:studio       # Open Drizzle Studio
+pnpm db:seed         # Seed database with sample data
 ```
 
 ## 🔧 Configuration
@@ -216,11 +249,15 @@ const projectMetrics = await getProjectMetrics(projectId);
 
 ## 🚀 Future Enhancements
 
-- **Automated data integrations** with existing systems
-- **Advanced analytics** with predictive modeling
-- **Mobile responsive** design improvements
-- **Real-time notifications** for project alerts
-- **Advanced reporting** with PDF exports
+**Phase 2 Development:**
+- **Automated data integrations** with existing ERP/accounting systems
+- **Advanced analytics** with predictive modeling and forecasting
+- **Mobile-first responsive** design for field operations
+- **Real-time notifications** for project alerts and budget thresholds
+- **Advanced reporting** with PDF exports and scheduled reports
+- **Individual asset tracking** beyond equipment types
+- **Multi-company support** for larger organizations
+- **API integrations** with construction management software
 
 ## 📝 Contributing
 
@@ -230,12 +267,18 @@ const projectMetrics = await getProjectMetrics(projectId);
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📞 Support
+## 📞 Support & Documentation
 
-For questions or issues:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation in `/docs`
+**Getting Help:**
+- Create an issue in the repository for bugs or feature requests
+- Contact the development team for technical support
+- Check comprehensive documentation in `/docs` folder
+
+**Documentation Available:**
+- Database design and ERD (`/docs/database-design.md`)
+- Technical specifications (`/docs/technical-specification.md`)
+- Product requirements (`/docs/prd.md`)
+- Folder structure overview (`/docs/folder-structure.md`)
 
 ## 📄 License
 
