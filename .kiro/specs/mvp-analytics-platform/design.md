@@ -10,7 +10,6 @@ The MVP Analytics Platform is a Next.js 15 application using App Router with Sup
 - ✅ ShadCN UI components (Button, Input, Card, Label)
 - ✅ Tailwind CSS v4 styling
 - ✅ Basic middleware for route protection
-- ❌ Multi-tenant organization structure (needs implementation)
 - ❌ Database schema with Drizzle ORM (needs implementation)
 - ❌ Role-based dashboards (needs implementation)
 - ❌ Data management forms (needs implementation)
@@ -102,13 +101,9 @@ src/
 ├── app/
 │   ├── auth/ (✅ DONE)
 │   ├── (dashboard)/ (❌ NEEDS IMPLEMENTATION)
-│   │   ├── layout.tsx (protected layout with org context)
+│   │   ├── layout.tsx (protected layout with role-based navigation)
 │   │   ├── dashboard/
 │   │   │   └── page.tsx (role-based landing)
-│   │   ├── organization/
-│   │   │   ├── settings/page.tsx
-│   │   │   ├── users/page.tsx
-│   │   │   └── subscription/page.tsx
 │   │   ├── projects/
 │   │   │   ├── page.tsx
 │   │   │   └── [id]/page.tsx
@@ -122,8 +117,6 @@ src/
 ├── components/
 │   ├── ui/ (ShadCN components)
 │   ├── forms/
-│   │   ├── organization-form.tsx
-│   │   ├── user-invite-form.tsx
 │   │   ├── project-form.tsx
 │   │   ├── equipment-type-form.tsx
 │   │   ├── invoice-form.tsx
@@ -138,11 +131,6 @@ src/
 │   │   ├── project-manager-dashboard.tsx
 │   │   ├── operations-dashboard.tsx
 │   │   └── finance-dashboard.tsx
-│   ├── organization/
-│   │   ├── organization-settings.tsx
-│   │   ├── user-management.tsx
-│   │   ├── subscription-management.tsx
-│   │   └── organization-switcher.tsx
 │   └── navigation/
 │       ├── sidebar.tsx
 │       └── role-nav.tsx
@@ -190,39 +178,25 @@ src/
 
 ## Data Models
 
-### Multi-Tenant Database Design
+### Single-Tenant Database Design
 
-The platform uses a multi-tenant SaaS architecture to support multiple organizations with complete data isolation. The database design is detailed in `docs/db-design.md` and includes Row Level Security (RLS) for secure multi-tenancy.
+The MVP uses a simplified single-tenant database design focused on demonstrating core analytics functionality. This approach eliminates complexity while proving the business value of centralized project dashboards.
 
-### Core Tables (Multi-Tenant Implementation)
+### Core Tables (Single-Tenant Implementation)
 
 ```typescript
-// Organizations table - Master table for multi-tenancy
-export const organizations = pgTable('organizations', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  slug: text('slug').notNull().unique(), // URL-friendly identifier
-  status: text('status').notNull().default('active'), // 'active', 'inactive', 'trial'
-  subscription: text('subscription').notNull().default('basic'), // 'basic', 'premium', 'enterprise'
-  settings: jsonb('settings').default('{}'), // Org-specific configurations
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
-// Users table - Authentication & roles (organization-scoped)
+// Users table - Authentication & roles
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
-  email: text('email').notNull(), // Unique within organization
+  email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(), // Supabase handles hashing
   role: text('role').notNull(), // 'executive', 'project_manager', 'operations', 'finance'
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Projects table - Project metadata (organization-scoped)
+// Projects table - Project metadata
 export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
   projectNumber: text('project_number').notNull(), // e.g. "STP 002"
   description: text('description'),
   client: text('client').notNull(),
@@ -232,16 +206,15 @@ export const projects = pgTable('projects', {
   endDate: date('end_date').notNull(),
 });
 
-// Equipment Types table - Master list of reusable equipment (organization-scoped)
+// Equipment Types table - Master list of reusable equipment
 export const equipmentTypes = pgTable('equipment_types', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').references(() => organizations.id).notNull(),
   name: text('name').notNull(), // e.g. "Tipper", "Grader"
   category: text('category'), // e.g. "Heavy", "Light"
   description: text('description'),
 });
 
-// Invoices table - Equipment usage per project with revenue (inherits organization through project)
+// Invoices table - Equipment usage per project with revenue
 export const invoices = pgTable('invoices', {
   id: serial('id').primaryKey(),
   invoiceNumber: text('invoice_number'),
@@ -253,7 +226,7 @@ export const invoices = pgTable('invoices', {
   notes: text('notes'),
 });
 
-// Expenses table - Costs linked to invoices (inherits organization through invoice → project)
+// Expenses table - Costs linked to invoices
 export const expenses = pgTable('expenses', {
   id: serial('id').primaryKey(),
   invoiceId: integer('invoice_id').references(() => invoices.id).notNull(),
@@ -264,77 +237,20 @@ export const expenses = pgTable('expenses', {
 });
 ```
 
-### Multi-Tenant Benefits
+### Business Metrics and Calculations
 
-✅ **Complete Data Isolation** - Organizations cannot access each other's data
-✅ **Built-in Security** - Row Level Security (RLS) policies enforce tenant boundaries
-✅ **SaaS Ready** - Subscription management and billing integration ready
-✅ **Scalable Architecture** - Single database, multiple tenants with shared infrastructure
-✅ **Customizable** - Organization-specific settings and configurations
-
-### Row Level Security (RLS) Implementation
-
-Supabase RLS policies ensure complete data isolation:
+The system provides comprehensive analytics through calculated metrics:
 
 ```sql
--- Users can only access their own organization's data
-CREATE POLICY "Users can only access their organization" ON users
-  FOR ALL USING (organization_id = (
-    SELECT organization_id FROM users WHERE id = auth.uid()
-  ));
-
--- Projects scoped to organization
-CREATE POLICY "Projects scoped to organization" ON projects
-  FOR ALL USING (organization_id = (
-    SELECT organization_id FROM users WHERE id = auth.uid()
-  ));
-
--- Equipment types scoped to organization
-CREATE POLICY "Equipment types scoped to organization" ON equipment_types
-  FOR ALL USING (organization_id = (
-    SELECT organization_id FROM users WHERE id = auth.uid()
-  ));
-
--- Invoices inherit organization through projects
-CREATE POLICY "Invoices scoped to organization" ON invoices
-  FOR ALL USING (
-    project_id IN (
-      SELECT id FROM projects 
-      WHERE organization_id = (
-        SELECT organization_id FROM users WHERE id = auth.uid()
-      )
-    )
-  );
-
--- Expenses inherit organization through invoices → projects
-CREATE POLICY "Expenses scoped to organization" ON expenses
-  FOR ALL USING (
-    invoice_id IN (
-      SELECT i.id FROM invoices i
-      JOIN projects p ON i.project_id = p.id
-      WHERE p.organization_id = (
-        SELECT organization_id FROM users WHERE id = auth.uid()
-      )
-    )
-  );
-```
-
-### Organization-Scoped Business Metrics
-
-All calculations are automatically scoped to the user's organization:
-
-```sql
--- Total revenue per equipment type (organization-scoped)
+-- Total revenue per equipment type
 SELECT 
   et.name, 
   SUM(i.amount) as revenue
 FROM invoices i
 JOIN equipment_types et ON i.equipment_type_id = et.id
-JOIN projects p ON i.project_id = p.id
-WHERE p.organization_id = $1  -- Current user's organization
 GROUP BY et.name;
 
--- Profit per equipment type (organization-scoped)
+-- Profit per equipment type
 SELECT
   et.name,
   SUM(i.amount) AS revenue,
@@ -342,30 +258,28 @@ SELECT
   SUM(i.amount) - COALESCE(SUM(e.amount), 0) AS profit
 FROM invoices i
 JOIN equipment_types et ON i.equipment_type_id = et.id
-JOIN projects p ON i.project_id = p.id
 LEFT JOIN expenses e ON e.invoice_id = i.id
-WHERE p.organization_id = $1  -- Current user's organization
 GROUP BY et.name;
+
+-- Project profitability
+SELECT
+  p.project_number,
+  p.client,
+  SUM(i.amount) AS revenue,
+  COALESCE(SUM(e.amount), 0) AS costs,
+  SUM(i.amount) - COALESCE(SUM(e.amount), 0) AS profit
+FROM projects p
+LEFT JOIN invoices i ON i.project_id = p.id
+LEFT JOIN expenses e ON e.invoice_id = i.id
+GROUP BY p.id, p.project_number, p.client;
 ```
 
 ### Data Relationships
 
 ```mermaid
 erDiagram
-    ORGANIZATIONS {
-        serial id PK
-        text name
-        text slug
-        text status
-        text subscription
-        jsonb settings
-        timestamp created_at
-        timestamp updated_at
-    }
-    
     USERS {
         serial id PK
-        integer organization_id FK
         text email
         text password_hash
         text role
@@ -374,7 +288,6 @@ erDiagram
     
     PROJECTS {
         serial id PK
-        integer organization_id FK
         text project_number
         text description
         text client
@@ -386,7 +299,6 @@ erDiagram
     
     EQUIPMENT_TYPES {
         serial id PK
-        integer organization_id FK
         text name
         text category
         text description
@@ -412,9 +324,6 @@ erDiagram
         date date
     }
     
-    ORGANIZATIONS ||--o{ USERS : "belongs to"
-    ORGANIZATIONS ||--o{ PROJECTS : "owns"
-    ORGANIZATIONS ||--o{ EQUIPMENT_TYPES : "defines"
     PROJECTS ||--o{ INVOICES : "has many"
     EQUIPMENT_TYPES ||--o{ INVOICES : "used in"
     INVOICES ||--o{ EXPENSES : "incurs"
